@@ -1,121 +1,94 @@
 package;
 
+import ui.FlxVirtualPad;
 import flixel.FlxG;
-using StringTools;
+import flixel.util.FlxSave;
+import flixel.math.FlxPoint;
 
-class Config
-{
-	
-	public static var offset:Float;
-	public static var accuracy:String;
-	public static var healthMultiplier:Float;
-	public static var healthDrainMultiplier:Float;
-	public static var betterIcons:Bool;
-	public static var downscroll:Bool;
-	public static var flashings:Bool;
-	public static var bbdisable:Bool;
-	public static var newInput:Bool;
-	
-	public static var noRandomTap:Bool;
-	public static var disableCutscenes:String;
-	public static var disableDodgeSound:Bool;
+class Config {
+    var save:FlxSave;
 
-	public static function resetSettings():Void{
+    public function new() 
+    {
+        save = new FlxSave();
+    	save.bind("saveconrtol");
+    }
 
-		FlxG.save.data.offset = 0.0;
-		FlxG.save.data.accuracy = "simple";
-		FlxG.save.data.healthMultiplier = 1.0;
-		FlxG.save.data.healthDrainMultiplier = 1.0;
-		FlxG.save.data.betterIcons = true;
-		FlxG.save.data.downscroll = false;
-		FlxG.save.data.flashings = false;
-		FlxG.save.data.bbdisable = false;
-		FlxG.save.data.newInput = true;
+    public function setdownscroll(?value:Bool):Bool {
+		if (save.data.isdownscroll == null) save.data.isdownscroll = false;
 		
-		FlxG.save.data.disableCutscenes = 'story';
-		FlxG.save.data.disableDodgeSound = false;
-		reload();
-
+		save.data.isdownscroll = !save.data.isdownscroll;
+		save.flush();
+        return save.data.isdownscroll;
 	}
-	
-	public static function reload():Void
-	{
-		offset = FlxG.save.data.offset;
-		accuracy = FlxG.save.data.accuracy;
-		healthMultiplier = FlxG.save.data.healthMultiplier;
-		healthDrainMultiplier = FlxG.save.data.healthDrainMultiplier;
-		betterIcons = FlxG.save.data.betterIcons;
-		downscroll = FlxG.save.data.downscroll;
-		flashings = FlxG.save.data.flashings;
-		bbdisable = FlxG.save.data.bbdisable;
-		newInput = FlxG.save.data.newInput;
-		
-		disableCutscenes = FlxG.save.data.disableCutscenes;
-		disableDodgeSound = FlxG.save.data.disableDodgeSound;
+
+    public function getdownscroll():Bool {
+        if (save.data.isdownscroll != null) return save.data.isdownscroll;
+        return false;
+    }
+
+    public function getcontrolmode():Int {
+        // load control mode num from FlxSave
+		if (save.data.buttonsmode != null) return save.data.buttonsmode[0];
+        return 0;
+    }
+
+    public function setcontrolmode(mode:Int = 0):Int {
+        // save control mode num from FlxSave
+		if (save.data.buttonsmode == null) save.data.buttonsmode = new Array();
+        save.data.buttonsmode[0] = mode;
+        save.flush();
+
+        return save.data.buttonsmode[0];
+    }
+
+    public function savecustom(_pad:FlxVirtualPad) {
+		trace("saved");
+
+		if (save.data.buttons == null)
+		{
+			save.data.buttons = new Array();
+
+			for (buttons in _pad)
+			{
+				save.data.buttons.push(FlxPoint.get(buttons.x, buttons.y));
+			}
+		}else
+		{
+			var tempCount:Int = 0;
+			for (buttons in _pad)
+			{
+				save.data.buttons[tempCount] = FlxPoint.get(buttons.x, buttons.y);
+				tempCount++;
+			}
+		}
+		save.flush();
 	}
-	
-	public static function write(
-								offsetW:Float, 
-								accuracyW:String, 
-								healthMultiplierW:Float, 
-								healthDrainMultiplierW:Float, 
-								betterIconsW:Bool, 
-								downscrollW:Bool,
-								flashingsW:Bool, 
-								bbdisableW:Bool,
-								newInputW:Bool,
-								disableCutscenesW:String,
-								disableDodgeSoundW:Bool
-								):Void
-	{
 
-		FlxG.save.data.offset = offsetW;
-		FlxG.save.data.accuracy = accuracyW;
-		FlxG.save.data.healthMultiplier = healthMultiplierW;
-		FlxG.save.data.healthDrainMultiplier = healthDrainMultiplierW;
-		FlxG.save.data.betterIcons = betterIconsW;
-		FlxG.save.data.downscroll = downscrollW;
-		FlxG.save.data.flashings = flashingsW;
-		FlxG.save.data.bbdisable = bbdisableW;
-		FlxG.save.data.newInput = newInputW;
-		
-		FlxG.save.data.disableCutscenes = disableCutscenesW;
-		FlxG.save.data.disableDodgeSound = disableDodgeSoundW;
-		
-		reload();
+	public function loadcustom(_pad:FlxVirtualPad):FlxVirtualPad {
+		//load pad
+		if (save.data.buttons == null) return _pad;
+		var tempCount:Int = 0;
 
+		for(buttons in _pad)
+		{
+			buttons.x = save.data.buttons[tempCount].x;
+			buttons.y = save.data.buttons[tempCount].y;
+			tempCount++;
+		}	
+        return _pad;
 	}
-	
-	public static function configCheck():Void
-	{
-		if(FlxG.save.data.offset == null)
-			FlxG.save.data.offset = 0.0;
-		if(FlxG.save.data.accuracy == null)
-			FlxG.save.data.accuracy = "simple";
-		if(FlxG.save.data.healthMultiplier == null)
-			FlxG.save.data.healthMultiplier = 1.0;
-		if(FlxG.save.data.healthDrainMultiplier == null)
-			FlxG.save.data.healthDrainMultiplier = 1.0;
-		if(FlxG.save.data.betterIcons == null)
-			FlxG.save.data.betterIcons = true;
-		if(FlxG.save.data.downscroll == null)
-			FlxG.save.data.downscroll = false;
-		if(FlxG.save.data.flashings == null)
-			FlxG.save.data.flashings = false;
-		if(FlxG.save.data.bbdisable == null)
-			FlxG.save.data.bbdisable = false;
-		if(FlxG.save.data.newInput == null)
-			FlxG.save.data.newInput = true;
-		if(FlxG.save.data.disableCutscenes == null)
-			FlxG.save.data.disableCutscenes = 'story';
-		if(FlxG.save.data.disableDodgeSound == null)
-			FlxG.save.data.disableDodgeSound = false;
-		//bruh
+
+	public function setFrameRate(fps:Int = 60) {
+		if (fps < 10) return;
 		
-
-
-		if(FlxG.save.data.ee1 == null)
-			FlxG.save.data.ee1 = false;
+		FlxG.stage.frameRate = fps;
+		save.data.framerate = fps;
+		save.flush();
 	}
-	
+
+	public function getFrameRate():Int {
+		if (save.data.framerate != null) return save.data.framerate;
+		return 60;
+	}
 }
